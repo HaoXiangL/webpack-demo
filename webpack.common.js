@@ -3,21 +3,12 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const path = require('path')
 
 module.exports = {
-  mode: 'development', //development || production
-  //sourceMap配置(映射index.js和bundle.js的代码行数关系，报错更具体到哪行)
-  devtool: 'cheap-module-eval-source-map',//development使用这个更好
-  // devtool: 'cheap-module-source-map', //production使用这个更好
   entry: {
     //重命名为main
     main: './src/index.js',
     // sub: './src/index.js'
   },
-  //devServer可以实现启动服务器，更改代码后不用刷新也可更新
-  devServer:{
-    contentBase: './dist',
-    //自动打开浏览器,自动访问地址
-    open: true
-  },
+  //module = 遇到文件类型，如何打包
   module: {
     rules: [{
       //遇到jpg|png|gif类型时
@@ -28,7 +19,9 @@ module.exports = {
         options: {
           //placeholder 占位符
           name: '[name].[ext]',
+          //输出路径
           outputPath: 'images/',
+          //如果小于25k，已base64打包到打包文件里
           limit: 25 * 1024
         }
       }
@@ -52,7 +45,7 @@ module.exports = {
         'postcss-loader'
       ]
     },{
-      //处理icon矢量图
+      //处理icon矢量图 字体文件
       test: /\.(eot|ttf|svg|woff)$/,
       //使用loader处理 
       use: {
@@ -64,7 +57,24 @@ module.exports = {
           limit: 25 * 1024
         }
       }
-    }]
+    },
+    {
+      test: /\.js$/,
+      //不对在node_modules的代码进行babel转译
+      exclude: /node_modules/,
+      loader: "babel-loader",
+      // options: {
+      //在使用库文件时需要用@babel/plugin-transform-runtime
+      // presets: [["@babel/preset-env",{
+      //   corejs: 2,
+      //   targets: {
+      //     chrome: "67",//chrome大于67版本不需要加载
+      //   },
+      //   useBuiltIns: 'usage'//useBuiltIns可以按需加载
+      // }]]
+      // }
+    }
+  ]
   },
   //plugin可以在webpack运行某个时刻，帮你处理sth
   //HtmlWebpackPlugin会在打包结束后生成一个html文件，并把打包生成的js自动引入到这个html文件
@@ -73,7 +83,9 @@ module.exports = {
         template: 'src/index.html'
       }),
       //打包前删除之前的目录下的文件
-    new CleanWebpackPlugin()],
+    new CleanWebpackPlugin()
+  ],
+
   output: {
     //固定前缀地址
     // publicPath: 'http://cdn.com.cn',
